@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -88,6 +87,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
       method: requestMethod,
       url: apiUrl,
       data: editedContact,
+      headers: {
+        Authorization: localStorage.getItem('token'),
+      },
     })
       .then((response) => {
         if (response.status === 201 || response.status === 200) {
@@ -129,7 +131,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Adicionar Contato</ModalHeader>
+        <ModalHeader>{isEditMode ? 'Editar contato' : 'Adicionar contato'}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Grid templateAreas={`
@@ -242,7 +244,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
           </Grid>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+          <Button mr={3} onClick={handleSubmit} colorScheme={isEditMode ? 'blue' : 'green'}>
             Salvar
           </Button>
           <Button onClick={onClose}>Cancelar</Button>

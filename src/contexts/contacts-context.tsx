@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Contact } from '../types/contact';
 import axios from 'axios';
 
@@ -16,7 +16,11 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     const [contacts, setContacts] = useState<Contact[]>([]);
 
     useEffect(() => {
-        axios.get('http://localhost:3000/contacts')
+        axios.get('http://localhost:3000/contacts', {
+            headers: {
+                Authorization: localStorage.getItem('token')
+            }
+        })
             .then((response) => {
                 setContacts(response.data)
             })

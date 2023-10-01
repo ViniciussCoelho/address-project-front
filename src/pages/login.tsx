@@ -24,7 +24,7 @@ export const Login: React.FC = () => {
     })
       .then((response) => {
         if (response.status === 200) {
-          localStorage.setItem('token', response.data.token)
+          localStorage.setItem('token', response.headers.authorization)
           window.location.href = '/home'
         }
       })
