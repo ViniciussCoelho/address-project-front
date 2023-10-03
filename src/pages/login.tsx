@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -7,31 +7,32 @@ import {
   Input,
   Stack,
   Heading,
-} from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import axios from 'axios'
+} from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
+import axios from "axios";
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    axios.post('http://localhost:3000/login', {
-      user: {
-        email,
-        password,
-      },
-    })
+    axios
+      .post("http://localhost:3000/login", {
+        user: {
+          email,
+          password,
+        },
+      })
       .then((response) => {
         if (response.status === 200) {
-          localStorage.setItem('token', response.headers.authorization)
-          window.location.href = '/'
+          localStorage.setItem("token", response.headers.authorization);
+          window.location.href = "/";
         }
       })
       .catch((err) => {
-        console.log(err)
-      })
-  }
+        console.log(err);
+      });
+  };
 
   return (
     <Box
@@ -75,5 +76,5 @@ export const Login: React.FC = () => {
         </Box>
       </Stack>
     </Box>
-  )
-}
+  );
+};

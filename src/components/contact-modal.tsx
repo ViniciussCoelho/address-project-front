@@ -12,42 +12,48 @@ import {
   Input,
   Grid,
   GridItem,
-} from '@chakra-ui/react'
-import React, { useEffect, useState } from 'react'
-import { Contact } from '../types/contact'
-import axios from 'axios'
-import { useContacts } from '../contexts/contacts-context'
-import InputMask from 'react-input-mask'
+} from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { Contact } from "../types/contact";
+import axios from "axios";
+import { useContacts } from "../contexts/contacts-context";
+import InputMask from "react-input-mask";
 
 interface ContactModalProps {
-  isOpen: boolean
-  onClose: () => void
-  contact?: Contact
+  isOpen: boolean;
+  onClose: () => void;
+  contact?: Contact;
 }
 
-export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, contact }) => {
+export const ContactModal: React.FC<ContactModalProps> = ({
+  isOpen,
+  onClose,
+  contact,
+}) => {
   const isEditMode = !!contact;
   const { addContact, editContact } = useContacts();
-  const [editedContact, setEditedContact] = useState<Contact>(contact
-    ? contact
-    : {
-      id: 0,
-      cpf: '',
-      phone: '',
-      name: '',
-      address: {
-        street: '',
-        number: '',
-        city: '',
-        neighborhood: '',
-        complement: '',
-        state: '',
-        country: '',
-        zipcode: '',
-        latitude: '',
-        longitude: '',
-      },
-    })
+  const [editedContact, setEditedContact] = useState<Contact>(
+    contact
+      ? contact
+      : {
+          id: 0,
+          cpf: "",
+          phone: "",
+          name: "",
+          address: {
+            street: "",
+            number: "",
+            city: "",
+            neighborhood: "",
+            complement: "",
+            state: "",
+            country: "",
+            zipcode: "",
+            latitude: "",
+            longitude: "",
+          },
+        }
+  );
 
   useEffect(() => {
     if (contact) {
@@ -57,21 +63,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
     }
   }, [contact, isOpen]);
 
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     setEditedContact((prevContact) => ({
       ...prevContact,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
-    if (name == 'zipcode') {
-      handleSearchZipcode(value)
+    if (name == "zipcode") {
+      handleSearchZipcode(value);
     }
 
     setEditedContact((prevContact) => ({
@@ -80,79 +85,79 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
         ...prevContact.address,
         [name]: value,
       },
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = () => {
     const apiUrl = isEditMode
       ? `http://localhost:3000/contacts/${editedContact.id}`
-      : 'http://localhost:3000/contacts'
+      : "http://localhost:3000/contacts";
 
-    const requestMethod = isEditMode ? 'PUT' : 'POST'
+    const requestMethod = isEditMode ? "PUT" : "POST";
 
     axios({
       method: requestMethod,
       url: apiUrl,
       data: editedContact,
       headers: {
-        Authorization: localStorage.getItem('token'),
+        Authorization: localStorage.getItem("token"),
       },
     })
       .then((response) => {
         if (response.status === 201 || response.status === 200) {
           if (isEditMode) {
-            editContact(editedContact.id, editedContact)
+            editContact(editedContact.id, editedContact);
+          } else {
+            addContact(editedContact);
           }
-          else {
-            addContact(editedContact)
-          }
-          onClose()
-          clearForm()
+          onClose();
+          clearForm();
         }
       })
       .catch((err) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const clearForm = () => {
     setEditedContact({
       id: 0,
-      cpf: '',
-      phone: '',
-      name: '',
+      cpf: "",
+      phone: "",
+      name: "",
       address: {
-        street: '',
-        number: '',
-        city: '',
-        neighborhood: '',
-        complement: '',
-        state: '',
-        country: '',
-        zipcode: '',
-        latitude: '',
-        longitude: '',
+        street: "",
+        number: "",
+        city: "",
+        neighborhood: "",
+        complement: "",
+        state: "",
+        country: "",
+        zipcode: "",
+        latitude: "",
+        longitude: "",
       },
-    })
-  }
+    });
+  };
 
   const handleSearchZipcode = (zipcode: string) => {
     if (zipcode.length < 9) {
-      return
+      return;
     }
 
-    axios.get(`http://localhost:3000/address_by_zipcode`, {
-      params: {
-        address: {
-          zipcode: zipcode,
-        }
-      },
-      headers: {
-        Authorization: localStorage.getItem('token'),
-      },
-    })
+    axios
+      .get(`http://localhost:3000/address_by_zipcode`, {
+        params: {
+          address: {
+            zipcode: zipcode,
+          },
+        },
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      })
       .then((response) => {
-        const { data } = response
+        const { data } = response;
 
         setEditedContact((prevContact) => ({
           ...prevContact,
@@ -164,30 +169,34 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
             state: data.address.state,
             country: "Brasil",
           },
-        }))
+        }));
       })
       .catch((err) => {
-        console.error(err)
-      })
-  }
-
+        console.error(err);
+      });
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{isEditMode ? 'Editar contato' : 'Adicionar contato'}</ModalHeader>
+        <ModalHeader>
+          {isEditMode ? "Editar contato" : "Adicionar contato"}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Grid templateAreas={`
+          <Grid
+            templateAreas={`
             "name cpf"
             "phone zipcode"
             "street number"
             "city state"
             "neighborhood country"
             "complement complement"
-          `
-          } gap={4} templateColumns="repeat(3, 1fr)">
+          `}
+            gap={4}
+            templateColumns="repeat(3, 1fr)"
+          >
             <GridItem colSpan={2} area="name">
               <FormControl>
                 <FormLabel>Nome</FormLabel>
@@ -321,12 +330,16 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
           </Grid>
         </ModalBody>
         <ModalFooter>
-          <Button mr={3} onClick={handleSubmit} colorScheme={isEditMode ? 'blue' : 'green'}>
+          <Button
+            mr={3}
+            onClick={handleSubmit}
+            colorScheme={isEditMode ? "blue" : "green"}
+          >
             Salvar
           </Button>
           <Button onClick={onClose}>Cancelar</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
-  )
-}
+  );
+};

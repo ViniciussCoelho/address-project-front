@@ -1,61 +1,90 @@
-import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Button } from "@chakra-ui/react"
-import { useRef } from "react"
-import axios from "axios"
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Button,
+  Input,
+  useToast,
+} from "@chakra-ui/react";
+import { useRef, useState } from "react";
+import axios from "axios";
 
 interface DeleteAlertProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const DeleteAlert: React.FC<DeleteAlertProps> = ({ isOpen, onClose }) => {
-  const cancelRef = useRef(null)
+export const DeleteAlert: React.FC<DeleteAlertProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const cancelRef = useRef(null);
+  const [password, setPassword] = useState<string>("");
+  const toast = useToast();
 
-  const handleDeleteAccount = (e: any) => {
-    e.preventDefault()
+  const handleDeleteAccount = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
 
-    axios.delete('http://localhost:3000/delete_user',
-      {
+    axios
+      .delete(`http://localhost:3000/delete_user?`, {
+        params: {
+          password: password,
+        },
         headers: {
-          Authorization: localStorage.getItem('token')
-        }
+          Authorization: localStorage.getItem("token"),
+        },
       })
       .then((response) => {
         if (response.status === 200) {
-          localStorage.removeItem('token')
-          window.location.href = '/login'
+          localStorage.removeItem("token");
+          window.location.href = "/login";
         }
       })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
+      .catch(() => {
+        toast({
+          description: "Senha incorreta",
+          status: "error",
+          position: "top-right",
+          duration: 9000,
+          isClosable: true,
+        });
+      });
+  };
 
   return (
-    < AlertDialog
+    <AlertDialog
       isOpen={isOpen}
       leastDestructiveRef={cancelRef}
       onClose={onClose}
     >
       <AlertDialogOverlay>
         <AlertDialogContent>
-          <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
             Delete Customer
           </AlertDialogHeader>
 
           <AlertDialogBody>
-            Are you sure? You can't undo this action afterwards.
+            Digite sua senha para confirmar a exclusão da sua conta.
+            <Input
+              type="password"
+              placeholder="Senha"
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </AlertDialogBody>
 
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme='red' onClick={handleDeleteAccount} ml={3}>
+            <Button colorScheme="red" onClick={handleDeleteAccount} ml={3}>
               Delete
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>
-    </AlertDialog >
-  )
-}
+    </AlertDialog>
+  );
+};
