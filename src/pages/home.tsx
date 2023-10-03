@@ -1,16 +1,18 @@
-import { Flex, VStack, Text, IconButton, Box, useDisclosure, Input, Select, HStack, Link, useToast } from "@chakra-ui/react";
+import { Flex, VStack, Text, IconButton, Box, useDisclosure, Input, Select, HStack, Link, useToast, Button } from "@chakra-ui/react";
 import { AiFillDelete as DeleteIcon, AiFillEdit as EditIcon, AiFillPlusCircle as AddIcon } from "react-icons/ai";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Contact } from "../types/contact";
 import { ContactModal } from "../components/contact-modal";
 import { useContacts } from "../contexts/contacts-context";
+import { DeleteAlert } from "../components/delete-alert";
 
 export const Home = () => {
   const { contacts, deleteContact, setContacts } = useContacts()
   const [contactToEdit, setContactToEdit] = useState<Contact>()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [mapUrl, setMapUrl] = useState<string>('https://maps.google.com/maps?q=London&t=&z=13&ie=UTF8&iwloc=&output=embed')
+  const { isOpen: isOpenDelete, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure()
+  const [mapUrl, setMapUrl] = useState<string>('https://maps.google.com/maps?q=Brazil&t=&z=13&ie=UTF8&iwloc=&output=embed')
   const toast = useToast()
 
   useEffect(() => {
@@ -128,41 +130,8 @@ export const Home = () => {
       })
   }
 
-  const handleDeleteAccount = (e: any) => {
-    e.preventDefault()
-
-    axios.delete('http://localhost:3000/delete_user',
-      {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      })
-      .then((response) => {
-        if (response.status === 200) {
-          localStorage.removeItem('token')
-          window.location.href = '/login'
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  const destroyAllContacts = () => {
-    axios.delete('http://localhost:3000/contacts/destroy_all',
-      {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      })
-      .then((response) => {
-        if (response.status === 200) {
-          setContacts([])
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+  const handleDeleteAccount = () => {
+    onOpenDelete()
   }
 
   return (
@@ -203,7 +172,9 @@ export const Home = () => {
           </Flex>
         ))}
 
-        <Link href="login" color="red" position="absolute" bottom="1rem" onClick={handleDeleteAccount}>Apagar conta</Link>
+        <Button colorScheme='red' onClick={handleDeleteAccount} ml={3} position="absolute" bottom="0" mb="1rem">
+          Delete Account
+        </Button>
       </VStack>
       <Box id="map" width="100%" height="100vh" flex={1}>
         <iframe
@@ -214,6 +185,7 @@ export const Home = () => {
         />
       </Box>
       <ContactModal isOpen={isOpen} onClose={onClose} contact={contactToEdit} />
+      <DeleteAlert isOpen={isOpenDelete} onClose={onCloseDelete} />
     </Flex >
   );
 }
