@@ -2,6 +2,8 @@ type Address = {
     street: string;
     number: string;
     city: string;
+    neighborhood: string;
+    complement: string;
     state: string;
     country: string;
     zipcode: string;

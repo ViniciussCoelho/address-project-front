@@ -11,8 +11,6 @@ export const Home = () => {
   const [contactToEdit, setContactToEdit] = useState<Contact>()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [mapUrl, setMapUrl] = useState<string>('https://maps.google.com/maps?q=London&t=&z=13&ie=UTF8&iwloc=&output=embed')
-  const [order, setOrder] = useState<string>('asc')
-  const [sort, setSort] = useState<string>('name')
   const toast = useToast()
 
   useEffect(() => {
@@ -25,6 +23,10 @@ export const Home = () => {
         setContacts(response.data)
       })
       .catch((err) => {
+        if (err.response.status === 401) {
+          window.location.href = '/login'
+          return
+        }
         toast({
           title: "Erro ao carregar contatos",
           description: err.message,
@@ -64,7 +66,6 @@ export const Home = () => {
 
   const handleContactMap = (contact: Contact) => {
     const { latitude, longitude } = contact.address
-    console.log(contact.address)
     const mapUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&t=&z=13&ie=UTF8&iwloc=&output=embed`
     setMapUrl(mapUrl)
   }
@@ -88,33 +89,10 @@ export const Home = () => {
       })
   }
 
-  const handleSort = (e: any) => {
-    const { value } = e.target
-
-    setSort(value)
-
-    axios.get(`http://localhost:3000/contacts?page=1&per_page=10&sort=${value}&order=${order}`,
-      {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      })
-      .then((response) => {
-        if (response.status === 200) {
-          setContacts(response.data)
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
   const handleOrder = (e: any) => {
     const { value } = e.target
 
-    setOrder(value)
-
-    axios.get(`http://localhost:3000/contacts?page=1&per_page=10&sort=${sort}&order=${value}`,
+    axios.get(`http://localhost:3000/contacts?page=1&per_page=10&sort=name&order=${value}`,
       {
         headers: {
           Authorization: localStorage.getItem('token')
@@ -170,6 +148,23 @@ export const Home = () => {
       })
   }
 
+  const destroyAllContacts = () => {
+    axios.delete('http://localhost:3000/contacts/destroy_all',
+      {
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          setContacts([])
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
   return (
     <Flex width="100%" height="100vh">
       <VStack height="100%" width="300px" padding={4} spacing={4} align="stretch" bg="gray.800">
@@ -179,16 +174,10 @@ export const Home = () => {
           <IconButton icon={<AddIcon />} aria-label="Add contact" onClick={handleAddContact} _hover={{ color: 'green.500' }} />
         </Flex>
         <Input placeholder="Pesquisar" onChange={handleSearch} backgroundColor="white" />
-        <HStack>
-          <Select placeholder="Ordenar por" onChange={handleSort} backgroundColor="white" cursor="pointer">
-            <option value="name">Nome</option>
-            <option value="cpf">CPF</option>
-          </Select>
-          <Select placeholder="Ordem" onChange={handleOrder} backgroundColor="white" cursor="pointer">
-            <option value="asc">ASC</option>
-            <option value="desc">DESC</option>
-          </Select>
-        </HStack>
+        <Select onChange={handleOrder} backgroundColor="white" cursor="pointer" defaultValue="asc">
+          <option value="asc">ASC</option>
+          <option value="desc">DESC</option>
+        </Select>
         {contacts.map((contact) => (
           <Flex
             key={contact.id}

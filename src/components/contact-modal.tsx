@@ -17,6 +17,7 @@ import React, { useEffect, useState } from 'react'
 import { Contact } from '../types/contact'
 import axios from 'axios'
 import { useContacts } from '../contexts/contacts-context'
+import InputMask from 'react-input-mask'
 
 interface ContactModalProps {
   isOpen: boolean
@@ -38,6 +39,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
         street: '',
         number: '',
         city: '',
+        neighborhood: '',
+        complement: '',
         state: '',
         country: '',
         zipcode: '',
@@ -66,6 +69,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+
+    if (name == 'zipcode') {
+      handleSearchZipcode(value)
+    }
 
     setEditedContact((prevContact) => ({
       ...prevContact,
@@ -118,6 +125,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
         street: '',
         number: '',
         city: '',
+        neighborhood: '',
+        complement: '',
         state: '',
         country: '',
         zipcode: '',
@@ -126,6 +135,42 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
       },
     })
   }
+
+  const handleSearchZipcode = (zipcode: string) => {
+    if (zipcode.length < 9) {
+      return
+    }
+
+    axios.get(`http://localhost:3000/address_by_zipcode`, {
+      params: {
+        address: {
+          zipcode: zipcode,
+        }
+      },
+      headers: {
+        Authorization: localStorage.getItem('token'),
+      },
+    })
+      .then((response) => {
+        const { data } = response
+
+        setEditedContact((prevContact) => ({
+          ...prevContact,
+          address: {
+            ...prevContact.address,
+            street: data.address.address,
+            neighborhood: data.address.neighborhood,
+            city: data.address.city,
+            state: data.address.state,
+            country: "Brasil",
+          },
+        }))
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  }
+
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
@@ -139,7 +184,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
             "phone zipcode"
             "street number"
             "city state"
-            "country country"
+            "neighborhood country"
+            "complement complement"
           `
           } gap={4} templateColumns="repeat(3, 1fr)">
             <GridItem colSpan={2} area="name">
@@ -161,6 +207,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
                   name="cpf"
                   value={editedContact?.cpf}
                   onChange={handleChange}
+                  as={InputMask}
+                  mask="999.999.999-99"
+                  maskChar={null}
                 />
               </FormControl>
             </GridItem>
@@ -172,6 +221,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
                   name="phone"
                   value={editedContact?.phone}
                   onChange={handleChange}
+                  as={InputMask}
+                  mask="(99) 99999-9999"
+                  maskChar={null}
                 />
               </FormControl>
             </GridItem>
@@ -180,9 +232,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
                 <FormLabel>CEP</FormLabel>
                 <Input
                   type="text"
+                  as={InputMask}
                   name="zipcode"
                   value={editedContact?.address?.zipcode}
                   onChange={handleAddressChange}
+                  mask="99999-999"
+                  maskChar={null}
                 />
               </FormControl>
             </GridItem>
@@ -219,6 +274,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
                 />
               </FormControl>
             </GridItem>
+            <GridItem colSpan={1} area="neighborhood">
+              <FormControl>
+                <FormLabel>Bairro</FormLabel>
+                <Input
+                  type="text"
+                  name="neighborhood"
+                  value={editedContact?.address?.neighborhood}
+                  onChange={handleAddressChange}
+                />
+              </FormControl>
+            </GridItem>
             <GridItem colSpan={1} area="state">
               <FormControl>
                 <FormLabel>Estado</FormLabel>
@@ -237,6 +303,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, con
                   type="text"
                   name="country"
                   value={editedContact?.address?.country}
+                  onChange={handleAddressChange}
+                />
+              </FormControl>
+            </GridItem>
+            <GridItem colSpan={2} area="complement">
+              <FormControl>
+                <FormLabel>Complemento</FormLabel>
+                <Input
+                  type="text"
+                  name="complement"
+                  value={editedContact?.address?.complement}
                   onChange={handleAddressChange}
                 />
               </FormControl>
