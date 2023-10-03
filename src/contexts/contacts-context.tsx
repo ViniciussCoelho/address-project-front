@@ -1,33 +1,19 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Contact } from '../types/contact';
-import axios from 'axios';
 
 interface ContactsContextType {
     contacts: Contact[];
     addContact: (contact: Contact) => void;
     deleteContact: (id: number) => void;
     editContact: (id: number, contact: Contact) => void;
+    setContacts: (contacts: Contact[]) => void;
 }
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined);
 
 export function ContactsProvider({ children }: { children: ReactNode }) {
     const [contacts, setContacts] = useState<Contact[]>([]);
-
-    useEffect(() => {
-        axios.get('http://localhost:3000/contacts', {
-            headers: {
-                Authorization: localStorage.getItem('token')
-            }
-        })
-            .then((response) => {
-                setContacts(response.data)
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-    }, [])
 
     const addContact = (contact: Contact) => {
         setContacts([...contacts, contact]);
@@ -49,7 +35,7 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <ContactsContext.Provider value={{ contacts, addContact, deleteContact, editContact }}>
+        <ContactsContext.Provider value={{ contacts, addContact, deleteContact, editContact, setContacts }}>
             {children}
         </ContactsContext.Provider>
     );
