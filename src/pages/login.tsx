@@ -29,9 +29,7 @@ export const Login: React.FC = () => {
           window.location.href = "/";
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   };
 
   return (

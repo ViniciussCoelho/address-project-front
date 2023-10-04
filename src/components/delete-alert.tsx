@@ -7,10 +7,10 @@ import {
   AlertDialogOverlay,
   Button,
   Input,
-  useToast,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import axios from "axios";
+import { useAppToast } from "../helpers/app-toast";
 
 interface DeleteAlertProps {
   isOpen: boolean;
@@ -23,13 +23,13 @@ export const DeleteAlert: React.FC<DeleteAlertProps> = ({
 }) => {
   const cancelRef = useRef(null);
   const [password, setPassword] = useState<string>("");
-  const toast = useToast();
+  const showToast = useAppToast();
 
   const handleDeleteAccount = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
     axios
-      .delete(`http://localhost:3000/delete_user?`, {
+      .delete(`http://localhost:3000/delete_user`, {
         params: {
           password: password,
         },
@@ -39,18 +39,13 @@ export const DeleteAlert: React.FC<DeleteAlertProps> = ({
       })
       .then((response) => {
         if (response.status === 200) {
+          showToast("success", "Conta deletada com sucesso");
           localStorage.removeItem("token");
           window.location.href = "/login";
         }
       })
       .catch(() => {
-        toast({
-          description: "Senha incorreta",
-          status: "error",
-          position: "top-right",
-          duration: 9000,
-          isClosable: true,
-        });
+        showToast("error", "Senha incorreta");
       });
   };
 

@@ -8,7 +8,6 @@ import {
   Input,
   Select,
   Link,
-  useToast,
   Button,
 } from "@chakra-ui/react";
 import {
@@ -22,11 +21,13 @@ import { Contact } from "../types/contact";
 import { ContactModal } from "../components/contact-modal";
 import { useContacts } from "../contexts/contacts-context";
 import { DeleteAlert } from "../components/delete-alert";
+import { useAppToast } from "../helpers/app-toast";
 
 export const Home = () => {
   const { contacts, deleteContact, setContacts } = useContacts();
   const [contactToEdit, setContactToEdit] = useState<Contact>();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const showToast = useAppToast();
   const {
     isOpen: isOpenDelete,
     onOpen: onOpenDelete,
@@ -35,7 +36,6 @@ export const Home = () => {
   const [mapUrl, setMapUrl] = useState<string>(
     "https://maps.google.com/maps?q=Brazil&t=&z=13&ie=UTF8&iwloc=&output=embed"
   );
-  const toast = useToast();
 
   useEffect(() => {
     axios
@@ -55,14 +55,9 @@ export const Home = () => {
           window.location.href = "/login";
           return;
         }
-        toast({
-          title: "Erro ao carregar contatos",
-          description: err.message,
-          status: "error",
-          duration: 9000,
-          isClosable: true,
-        });
+        showToast("error", "Erro ao carregar contatos");
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDeleteContact = (id: number) => {
@@ -75,10 +70,15 @@ export const Home = () => {
       .then((response) => {
         if (response.status === 200) {
           deleteContact(id);
+          showToast("success", "Contato deletado com sucesso");
         }
       })
       .catch((err) => {
-        console.log(err);
+        if (err.response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        showToast("error", "Erro ao deletar contato");
       });
   };
 
@@ -115,8 +115,8 @@ export const Home = () => {
           setContacts(response.data);
         }
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
+        showToast("error", "Erro ao pesquisar contatos");
       });
   };
 
@@ -137,9 +137,7 @@ export const Home = () => {
           setContacts(response.data);
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   };
 
   const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -153,13 +151,12 @@ export const Home = () => {
       })
       .then((response) => {
         if (response.status === 200) {
+          showToast("success", "Logout realizado com sucesso");
           localStorage.removeItem("token");
           window.location.href = "/login";
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   };
 
   const handleDeleteAccount = () => {
@@ -174,13 +171,13 @@ export const Home = () => {
         padding={4}
         spacing={4}
         align="stretch"
-        bg="gray.800"
+        bg="white"
       >
-        <Link href="/login" onClick={handleLogout} color="white">
+        <Link href="/login" onClick={handleLogout} color="red">
           Logout
         </Link>
         <Flex justify="space-between" align="center">
-          <Text fontSize="2xl" fontWeight="bold" color="white">
+          <Text fontSize="2xl" fontWeight="bold" color="black">
             Contatos
           </Text>
           <IconButton

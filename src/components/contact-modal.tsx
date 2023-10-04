@@ -12,12 +12,15 @@ import {
   Input,
   Grid,
   GridItem,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Contact } from "../types/contact";
 import axios from "axios";
 import { useContacts } from "../contexts/contacts-context";
 import InputMask from "react-input-mask";
+import { cpf } from "cpf-cnpj-validator";
+import { useAppToast } from "../helpers/app-toast";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -32,6 +35,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({
 }) => {
   const isEditMode = !!contact;
   const { addContact, editContact } = useContacts();
+  const showToast = useAppToast();
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const [editedContact, setEditedContact] = useState<Contact>(
     contact
       ? contact
@@ -89,6 +96,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   };
 
   const handleSubmit = () => {
+    if (validateForm()) {
+      return;
+    }
+    if (!cpf.isValid(editedContact.cpf)) {
+      setValidationErrors((prevErrors) => ({
+        ...prevErrors,
+        cpf: "CPF inválido",
+      }));
+      return;
+    }
+
     const apiUrl = isEditMode
       ? `http://localhost:3000/contacts/${editedContact.id}`
       : "http://localhost:3000/contacts";
@@ -110,12 +128,18 @@ export const ContactModal: React.FC<ContactModalProps> = ({
           } else {
             addContact(editedContact);
           }
+          showToast("success", "Contato salvo com sucesso");
           onClose();
           clearForm();
         }
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((error) => {
+        if (error.response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        showToast("error", "Erro ao salvar contato");
       });
   };
 
@@ -171,9 +195,36 @@ export const ContactModal: React.FC<ContactModalProps> = ({
           },
         }));
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((error) => {
+        if (error.response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        showToast("error", "Erro ao buscar CEP");
       });
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(editedContact)) {
+      if (value.toString().trim() === "") {
+        errors[key] = "Campo obrigatório";
+      }
+    }
+
+    for (const [key, value] of Object.entries(editedContact.address)) {
+      if (key === "latitude" || key === "longitude" || key === "complement") {
+        continue;
+      }
+      if (value.toString().trim() === "") {
+        errors[key] = "Campo obrigatório";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length > 0;
   };
 
   return (
@@ -198,18 +249,25 @@ export const ContactModal: React.FC<ContactModalProps> = ({
             templateColumns="repeat(3, 1fr)"
           >
             <GridItem colSpan={2} area="name">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.name} isRequired>
                 <FormLabel>Nome</FormLabel>
                 <Input
                   type="text"
                   name="name"
                   value={editedContact?.name}
                   onChange={handleChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      name: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.name}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="cpf">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.cpf} isRequired>
                 <FormLabel>CPF</FormLabel>
                 <Input
                   type="text"
@@ -219,11 +277,18 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                   as={InputMask}
                   mask="999.999.999-99"
                   maskChar={null}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      cpf: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.cpf}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={2} area="phone">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.phone} isRequired>
                 <FormLabel>Telefone</FormLabel>
                 <Input
                   type="text"
@@ -233,11 +298,18 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                   as={InputMask}
                   mask="(99) 99999-9999"
                   maskChar={null}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      phone: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.phone}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="zipcode">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.zipcode} isRequired>
                 <FormLabel>CEP</FormLabel>
                 <Input
                   type="text"
@@ -247,73 +319,127 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                   onChange={handleAddressChange}
                   mask="99999-999"
                   maskChar={null}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      zipcode: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.zipcode}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={2} area="street">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.street} isRequired>
                 <FormLabel>Rua</FormLabel>
                 <Input
                   type="text"
                   name="street"
                   value={editedContact?.address?.street}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      street: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.street}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="number">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.number} isRequired>
                 <FormLabel>Número</FormLabel>
                 <Input
                   type="number"
                   name="number"
                   value={editedContact?.address?.number}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      number: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.number}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={2} area="city">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.city} isRequired>
                 <FormLabel>Cidade</FormLabel>
                 <Input
                   type="text"
                   name="city"
                   value={editedContact?.address?.city}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      city: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.city}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="neighborhood">
-              <FormControl>
+              <FormControl
+                isInvalid={!!validationErrors.neighborhood}
+                isRequired
+              >
                 <FormLabel>Bairro</FormLabel>
                 <Input
                   type="text"
                   name="neighborhood"
                   value={editedContact?.address?.neighborhood}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      neighborhood: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>
+                  {validationErrors.neighborhood}
+                </FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="state">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.state} isRequired>
                 <FormLabel>Estado</FormLabel>
                 <Input
                   type="text"
                   name="state"
                   value={editedContact?.address?.state}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      state: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.state}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={1} area="country">
-              <FormControl>
+              <FormControl isInvalid={!!validationErrors.country} isRequired>
                 <FormLabel>País</FormLabel>
                 <Input
                   type="text"
                   name="country"
                   value={editedContact?.address?.country}
                   onChange={handleAddressChange}
+                  onBlur={() => {
+                    setValidationErrors((prevErrors) => ({
+                      ...prevErrors,
+                      country: "",
+                    }));
+                  }}
                 />
+                <FormErrorMessage>{validationErrors.country}</FormErrorMessage>
               </FormControl>
             </GridItem>
             <GridItem colSpan={2} area="complement">
