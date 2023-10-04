@@ -58,7 +58,7 @@ export const DeleteAlert: React.FC<DeleteAlertProps> = ({
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Customer
+            Apagar conta
           </AlertDialogHeader>
 
           <AlertDialogBody>
@@ -72,10 +72,10 @@ export const DeleteAlert: React.FC<DeleteAlertProps> = ({
 
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={onClose}>
-              Cancel
+              Cancelar
             </Button>
             <Button colorScheme="red" onClick={handleDeleteAccount} ml={3}>
-              Delete
+              Confirmar
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

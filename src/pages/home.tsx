@@ -27,6 +27,8 @@ export const Home = () => {
   const { contacts, deleteContact, setContacts } = useContacts();
   const [contactToEdit, setContactToEdit] = useState<Contact>();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const showToast = useAppToast();
   const {
     isOpen: isOpenDelete,
@@ -38,9 +40,14 @@ export const Home = () => {
   );
 
   useEffect(() => {
+    fetchContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchContacts = (page = 1) => {
     axios
       .get(
-        "http://localhost:3000/contacts?page=1&per_page=10&sort=name&order=asc",
+        `http://localhost:3000/contacts?page=${page}&per_page=10&sort=name&order=asc`,
         {
           headers: {
             Authorization: localStorage.getItem("token"),
@@ -48,7 +55,11 @@ export const Home = () => {
         }
       )
       .then((response) => {
-        setContacts(response.data);
+        if (response.status === 200) {
+          setContacts(response.data.contacts);
+          setTotalPages(response.data.total_pages);
+          setCurrentPage(page);
+        }
       })
       .catch((err) => {
         if (err.response.status === 401) {
@@ -57,8 +68,11 @@ export const Home = () => {
         }
         showToast("error", "Erro ao carregar contatos");
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchContacts(page);
+  };
 
   const handleDeleteContact = (id: number) => {
     axios
@@ -173,9 +187,14 @@ export const Home = () => {
         align="stretch"
         bg="white"
       >
-        <Link href="/login" onClick={handleLogout} color="red">
-          Logout
-        </Link>
+        <Flex justify="space-between" align="center">
+          <Link href="/login" onClick={handleLogout} color="red">
+            Sair
+          </Link>
+          <Button colorScheme="red" onClick={handleDeleteAccount} ml={3}>
+            Apagar conta
+          </Button>
+        </Flex>
         <Flex justify="space-between" align="center">
           <Text fontSize="2xl" fontWeight="bold" color="black">
             Contatos
@@ -201,51 +220,62 @@ export const Home = () => {
           <option value="asc">ASC</option>
           <option value="desc">DESC</option>
         </Select>
-        {contacts.map((contact) => (
-          <Flex
-            key={contact.id}
-            gap={2}
-            align="center"
-            bg="white"
-            borderRadius={8}
-            justify="space-between"
-            padding="0.5rem 1rem"
-            boxShadow="md"
-            width="100%"
-            _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
-            transition="background-color 0.2s ease-in-out"
-            onClick={() => handleContactMap(contact)}
+        <Box overflowY="auto">
+          {contacts.map((contact) => (
+            <Flex
+              key={contact.id}
+              gap={2}
+              align="center"
+              bg="white"
+              borderRadius={8}
+              justify="space-between"
+              padding="0.5rem 1rem"
+              boxShadow="md"
+              width="100%"
+              _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
+              transition="background-color 0.2s ease-in-out"
+              onClick={() => handleContactMap(contact)}
+              marginBottom={2}
+            >
+              <Flex>
+                <Text>{contact.name}</Text>
+              </Flex>
+              <Flex gap={2}>
+                <IconButton
+                  icon={<EditIcon />}
+                  aria-label="Edit contact"
+                  onClick={() => handleEditContact(contact)}
+                  _hover={{ color: "blue.500" }}
+                />
+                <IconButton
+                  icon={<DeleteIcon />}
+                  aria-label="Delete contact"
+                  onClick={() => handleDeleteContact(contact.id)}
+                  _hover={{ color: "red.500" }}
+                />
+              </Flex>
+            </Flex>
+          ))}
+        </Box>
+        <Flex justify="center" mt={4} align="center">
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            isDisabled={currentPage === 1}
+            fontSize="sm"
           >
-            <Flex>
-              <Text>{contact.name}</Text>
-            </Flex>
-            <Flex gap={2}>
-              <IconButton
-                icon={<EditIcon />}
-                aria-label="Edit contact"
-                onClick={() => handleEditContact(contact)}
-                _hover={{ color: "blue.500" }}
-              />
-              <IconButton
-                icon={<DeleteIcon />}
-                aria-label="Delete contact"
-                onClick={() => handleDeleteContact(contact.id)}
-                _hover={{ color: "red.500" }}
-              />
-            </Flex>
-          </Flex>
-        ))}
-
-        <Button
-          colorScheme="red"
-          onClick={handleDeleteAccount}
-          ml={3}
-          position="absolute"
-          bottom="0"
-          mb="1rem"
-        >
-          Delete Account
-        </Button>
+            Previous
+          </Button>
+          <Text mx={2} fontSize="sm">
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            isDisabled={currentPage === totalPages}
+            fontSize="sm"
+          >
+            Next
+          </Button>
+        </Flex>
       </VStack>
       <Box id="map" width="100%" height="100vh" flex={1}>
         <iframe title="map" width="100%" height="100%" src={mapUrl} />

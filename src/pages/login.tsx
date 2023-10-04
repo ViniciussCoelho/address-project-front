@@ -10,10 +10,12 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import axios from "axios";
+import { useAppToast } from "../helpers/app-toast";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const showToast = useAppToast();
 
   const handleLogin = () => {
     axios
@@ -29,7 +31,11 @@ export const Login: React.FC = () => {
           window.location.href = "/";
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (error.response.status === 401) {
+          showToast("error", "E-mail ou senha incorretos");
+        }
+      });
   };
 
   return (
