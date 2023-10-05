@@ -138,6 +138,16 @@ export const ContactModal: React.FC<ContactModalProps> = ({
           window.location.href = "/login";
           return;
         }
+        if (
+          error.response.status === 422 &&
+          error.response.data.cpf[0] === "CPF já cadastrado"
+        ) {
+          setValidationErrors((prevErrors) => ({
+            ...prevErrors,
+            cpf: "CPF já cadastrado",
+          }));
+          return;
+        }
 
         showToast("error", "Erro ao salvar contato");
       });
