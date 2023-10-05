@@ -6,3 +6,4 @@ https://www.postman.com/lunar-module-technologist-86861193/workspace/contacts-ap
 # How to run
 - npm install
 - npm run dev
+- access localhost:5173
