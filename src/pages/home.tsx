@@ -148,7 +148,7 @@ export const Home = () => {
       )
       .then((response) => {
         if (response.status === 200) {
-          setContacts(response.data);
+          setContacts(response.data.contacts);
         }
       })
       .catch(() => {});
