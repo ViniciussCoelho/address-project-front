@@ -127,6 +127,8 @@ export const Home = () => {
       .then((response) => {
         if (response.status === 200) {
           setContacts(response.data.contacts);
+          setCurrentPage(1);
+          setTotalPages(response.data.total_pages);
         }
       })
       .catch(() => {
@@ -149,6 +151,8 @@ export const Home = () => {
       .then((response) => {
         if (response.status === 200) {
           setContacts(response.data.contacts);
+          setCurrentPage(1);
+          setTotalPages(response.data.total_pages);
         }
       })
       .catch(() => {});
