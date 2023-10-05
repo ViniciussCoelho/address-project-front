@@ -126,7 +126,7 @@ export const Home = () => {
       )
       .then((response) => {
         if (response.status === 200) {
-          setContacts(response.data);
+          setContacts(response.data.contacts);
         }
       })
       .catch(() => {
@@ -221,41 +221,42 @@ export const Home = () => {
           <option value="desc">DESC</option>
         </Select>
         <Box overflowY="auto">
-          {contacts.map((contact) => (
-            <Flex
-              key={contact.id}
-              gap={2}
-              align="center"
-              bg="white"
-              borderRadius={8}
-              justify="space-between"
-              padding="0.5rem 1rem"
-              boxShadow="md"
-              width="100%"
-              _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
-              transition="background-color 0.2s ease-in-out"
-              onClick={() => handleContactMap(contact)}
-              marginBottom={2}
-            >
-              <Flex>
-                <Text>{contact.name}</Text>
+          {contacts &&
+            contacts.map((contact) => (
+              <Flex
+                key={contact.id}
+                gap={2}
+                align="center"
+                bg="white"
+                borderRadius={8}
+                justify="space-between"
+                padding="0.5rem 1rem"
+                boxShadow="md"
+                width="100%"
+                _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
+                transition="background-color 0.2s ease-in-out"
+                onClick={() => handleContactMap(contact)}
+                marginBottom={2}
+              >
+                <Flex>
+                  <Text>{contact.name}</Text>
+                </Flex>
+                <Flex gap={2}>
+                  <IconButton
+                    icon={<EditIcon />}
+                    aria-label="Edit contact"
+                    onClick={() => handleEditContact(contact)}
+                    _hover={{ color: "blue.500" }}
+                  />
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    aria-label="Delete contact"
+                    onClick={() => handleDeleteContact(contact.id)}
+                    _hover={{ color: "red.500" }}
+                  />
+                </Flex>
               </Flex>
-              <Flex gap={2}>
-                <IconButton
-                  icon={<EditIcon />}
-                  aria-label="Edit contact"
-                  onClick={() => handleEditContact(contact)}
-                  _hover={{ color: "blue.500" }}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  aria-label="Delete contact"
-                  onClick={() => handleDeleteContact(contact.id)}
-                  _hover={{ color: "red.500" }}
-                />
-              </Flex>
-            </Flex>
-          ))}
+            ))}
         </Box>
         <Flex justify="center" mt={4} align="center">
           <Button
