@@ -40,30 +40,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     Record<string, string>
   >({});
   const [editedContact, setEditedContact] = useState<Contact>(
-    contact
-      ? contact
-      : {
-          id: 0,
-          cpf: "",
-          phone: "",
-          name: "",
-          address: {
-            street: "",
-            number: "",
-            city: "",
-            neighborhood: "",
-            complement: "",
-            state: "",
-            country: "",
-            zipcode: "",
-            latitude: "",
-            longitude: "",
-          },
-        }
+    contact || {} as Contact
   );
 
   useEffect(() => {
     if (contact) {
+      console.log(contact);
       setEditedContact(contact);
     } else {
       clearForm();
